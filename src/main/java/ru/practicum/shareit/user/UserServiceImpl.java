@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
@@ -33,7 +32,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        validateForUser(userDto);
+        validateForExistEmail(userDto);
         return UserMapper.toUserDto(userRepository.createUser(UserMapper.toUser(userDto)));
     }
 
@@ -44,7 +43,7 @@ public class UserServiceImpl implements UserService {
             return UserMapper.toUserDto(userRepository.updateUser(userId, UserMapper.toUser(userDto)));
         }
         if (userDto.getEmail() != null) {
-            validateForExistEmail(userId, userDto);
+            validateForExistEmailWithOtherOwner(userId, userDto);
             return UserMapper.toUserDto(userRepository.updateUserFieldEmail(userId, UserMapper.toUser(userDto)));
         }
         return UserMapper.toUserDto(userRepository.updateUserFieldName(userId, UserMapper.toUser(userDto)));
@@ -56,26 +55,14 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteUserById(userId);
     }
 
-    private void validateForUser(UserDto userDto) {
-        if (userDto.getEmail() == null) {
-            log.info("Пользователь не заполнил поле email");
-            throw new ValidationException("Пользователь не заполнил поле email");
-        }
-        if (userDto.getEmail().isBlank() || !userDto.getEmail().contains("@")) {
-            log.info("Пользователь неверно ввел email = {}", userDto.getEmail());
-            throw new ValidationException("Неверный формат email");
-        }
+    private void validateForExistEmail(UserDto userDto) {
         if (userRepository.getUserEmailRepository().containsKey(userDto.getEmail())) {
             log.info("Пользователь с таким email = {} уже существует", userDto.getEmail());
             throw new ConflictException("Пользователь с таким email уже существует");
         }
-        if (userDto.getName().isBlank() || userDto.getName() == null) {
-            log.info("Пользователь не заполнил поле name = {}", userDto.getName());
-            throw new ValidationException("Пользователь не заполнил поле name");
-        }
     }
 
-    private void validateForExistEmail(long userId, UserDto userDto) {
+    private void validateForExistEmailWithOtherOwner(long userId, UserDto userDto) {
         if (userRepository.getUserEmailRepository().containsKey(userDto.getEmail())) {
             if (userRepository.getUserEmailRepository().get(userDto.getEmail()).getId() != userId)
                 throw new ConflictException("Пользователь с таким email уже существует");

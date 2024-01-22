@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.user.UserRepositoryImpl;
@@ -38,7 +37,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getItemForBooker(String text, long idUser) {
         validateFoundForUser(idUser);
-        if (text.equals("Пустое поле")) {
+        if (text.isBlank()) {
             return new ArrayList<>();
         }
         return itemRepository.getItemForBooker(text.toLowerCase().trim())
@@ -50,7 +49,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(long idUser, ItemDto itemDto) {
         validateFoundForUser(idUser);
-        validateForItem(itemDto);
         return ItemMapper.toItemDto(itemRepository.createItem(idUser, ItemMapper.toItem(itemDto)));
     }
 
@@ -85,29 +83,6 @@ public class ItemServiceImpl implements ItemService {
         if (!userRepository.getUserRepository().containsKey(userId)) {
             log.info("Пользователь с id = {} не найден", userId);
             throw new NotFoundException("Пользователь не найден");
-        }
-    }
-
-    private void validateForItem(ItemDto itemDto) {
-        if (itemDto.getName() == null) {
-            log.info("Пользователь не заполнил поле name");
-            throw new ValidationException("Пользователь не заполнил поле name");
-        }
-        if (itemDto.getDescription() == null) {
-            log.info("Пользователь не заполнил поле description");
-            throw new ValidationException("Пользователь не заполнил поле description");
-        }
-        if (itemDto.getName().isBlank()) {
-            log.info("Пользователь не заполнил поле name");
-            throw new ValidationException("Пользователь не заполнил поле name");
-        }
-        if (itemDto.getDescription().isBlank()) {
-            log.info("Пользователь не заполнил поле description");
-            throw new ValidationException("Пользователь не заполнил поле description");
-        }
-        if (!itemDto.isAvailable()) {
-            log.info("Пользователь не заполнил поле available");
-            throw new ValidationException("Пользователь не заполнил поле available");
         }
     }
 

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemForBooker(@RequestParam(name = "text", defaultValue = "Пустое поле") String text,
+    public List<ItemDto> getItemForBooker(@RequestParam(name = "text", defaultValue = "") String text,
                                           @RequestHeader("X-Sharer-User-Id") long idUser) {
         log.info("Получен запрос на поиск вещи в аренду для пользователя с id = {}", idUser);
         return itemService.getItemForBooker(text, idUser);
@@ -38,7 +39,7 @@ public class ItemController {
 
     @PostMapping()
     public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long idUser,
-                              @RequestBody ItemDto itemDto) {
+                              @Valid @RequestBody ItemDto itemDto) {
         log.info("Получен запрос на добавление вещи для пользователя с id = {}", idUser);
         return itemService.createItem(idUser, itemDto);
     }

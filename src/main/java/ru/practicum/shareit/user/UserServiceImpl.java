@@ -32,6 +32,7 @@ public class UserServiceImpl implements UserService {
         validateFoundForUser(user, userId);
         return UserMapper.toUserDto(user.get());
     }
+
     @Override
     @Transactional
     public UserDto createUser(UserDto userDto) {

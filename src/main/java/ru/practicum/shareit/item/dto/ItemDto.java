@@ -6,9 +6,6 @@ import lombok.RequiredArgsConstructor;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Data
 @RequiredArgsConstructor
 public class ItemDto {
@@ -19,4 +16,6 @@ public class ItemDto {
     private String description;
     @AssertTrue(message = "Пользователь не заполнил поле available")
     private boolean available;
+    private BookingItem lastBooking;
+    private BookingItem nextBooking;
 }

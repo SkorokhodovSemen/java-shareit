@@ -3,22 +3,24 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.ConflictException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
-    private final UserRepositoryImpl userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserDto> getAllUser() {
-        return userRepository.getAllUser()
+        return userRepository.findAll()
                 .stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
@@ -26,51 +28,46 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findUserById(long userId) {
-        validateFoundForUser(userId);
-        return UserMapper.toUserDto(userRepository.findUserById(userId));
+        Optional<User> user = userRepository.findById(userId);
+        validateFoundForUser(user, userId);
+        return UserMapper.toUserDto(user.get());
     }
-
     @Override
+    @Transactional
     public UserDto createUser(UserDto userDto) {
-        validateForExistEmail(userDto);
-        return UserMapper.toUserDto(userRepository.createUser(UserMapper.toUser(userDto)));
+        return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }
 
     @Override
+    @Transactional
     public UserDto updateUser(long userId, UserDto userDto) {
-        validateFoundForUser(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
+        validateFoundForUser(userOptional, userId);
         if (userDto.getEmail() != null && userDto.getName() != null) {
-            return UserMapper.toUserDto(userRepository.updateUser(userId, UserMapper.toUser(userDto)));
+            User user = UserMapper.toUser(userDto);
+            user.setId(userId);
+            return UserMapper.toUserDto(userRepository.save(user));
         }
         if (userDto.getEmail() != null) {
-            validateForExistEmailWithOtherOwner(userId, userDto);
-            return UserMapper.toUserDto(userRepository.updateUserFieldEmail(userId, UserMapper.toUser(userDto)));
+            User user = userOptional.get();
+            user.setEmail(userDto.getEmail());
+            return UserMapper.toUserDto(userRepository.save(user));
         }
-        return UserMapper.toUserDto(userRepository.updateUserFieldName(userId, UserMapper.toUser(userDto)));
+        User user = userOptional.get();
+        user.setName(userDto.getName());
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
+    @Transactional
     public void deleteUserById(long userId) {
-        validateFoundForUser(userId);
-        userRepository.deleteUserById(userId);
+        Optional<User> user = userRepository.findById(userId);
+        validateFoundForUser(user, userId);
+        userRepository.deleteById(userId);
     }
 
-    private void validateForExistEmail(UserDto userDto) {
-        if (userRepository.getUserEmailRepository().containsKey(userDto.getEmail())) {
-            log.info("Пользователь с таким email = {} уже существует", userDto.getEmail());
-            throw new ConflictException("Пользователь с таким email уже существует");
-        }
-    }
-
-    private void validateForExistEmailWithOtherOwner(long userId, UserDto userDto) {
-        if (userRepository.getUserEmailRepository().containsKey(userDto.getEmail())) {
-            if (userRepository.getUserEmailRepository().get(userDto.getEmail()).getId() != userId)
-                throw new ConflictException("Пользователь с таким email уже существует");
-        }
-    }
-
-    private void validateFoundForUser(long userId) {
-        if (!userRepository.getUserRepository().containsKey(userId)) {
+    private void validateFoundForUser(Optional<User> user, long userId) {
+        if (user.isEmpty()) {
             log.info("Пользователь с id = {} не найден", userId);
             throw new NotFoundException("Пользователь не найден");
         }

@@ -3,14 +3,12 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @Slf4j
@@ -19,9 +17,10 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable("itemId") long itemId) {
+    public ItemDto getItemById(@PathVariable("itemId") long itemId,
+                               @RequestHeader(value = "X-Sharer-User-Id") long idUser) {
         log.info("Получен запрос на поиск вещи с id = {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, idUser);
     }
 
     @GetMapping()
@@ -42,6 +41,14 @@ public class ItemController {
                               @Valid @RequestBody ItemDto itemDto) {
         log.info("Получен запрос на добавление вещи для пользователя с id = {}", idUser);
         return itemService.createItem(idUser, itemDto);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@RequestHeader("X-Sharer-User-Id") long idUser,
+                                    @Valid @RequestBody CommentDto commentDto,
+                                    @PathVariable("itemId") long itemId) {
+        log.info("Получен запрос на добавление комментария для вещи с id = {}", itemId);
+        return itemService.createComment(idUser, commentDto, itemId);
     }
 
     @PatchMapping("/{itemId}")

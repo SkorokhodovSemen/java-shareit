@@ -180,8 +180,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validFoundForBookerOrOwner(Optional<Booking> booking, long userId) {
-        if (booking.get().getBooker().getId() == userId || booking.get().getItem().getOwner().getId() == userId) {
-        } else {
+        if (!(booking.get().getBooker().getId() == userId || booking.get().getItem().getOwner().getId() == userId)) {
             log.info("Бронирование для пользователя с id = {} не найдено", userId);
             throw new NotFoundException("Бронирование не найдено");
         }
@@ -204,8 +203,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkCorrectTime(LocalDateTime start, LocalDateTime end) {
-        if (start.isBefore(end) & start.isAfter(LocalDateTime.now()) & end.isAfter(LocalDateTime.now())) {
-        } else {
+        if (!(start.isBefore(end) & start.isAfter(LocalDateTime.now()) & end.isAfter(LocalDateTime.now()))) {
             throw new ValidationException("Неверные параметры для времени, проверьте правильность запроса");
         }
     }
@@ -223,8 +221,9 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("Вы не можете одобрить данный запрос");
         }
     }
-    private void validForItemHaveOwner(Optional<Item> itemOptional, long idUser){
-        if (itemOptional.get().getOwner().getId() == idUser){
+
+    private void validForItemHaveOwner(Optional<Item> itemOptional, long idUser) {
+        if (itemOptional.get().getOwner().getId() == idUser) {
             log.info("Пользователь с id = {} не может создать бронирование на свою вещь", idUser);
             throw new NotFoundException("Вы не можете создать бронирование на свою вещь");
         }

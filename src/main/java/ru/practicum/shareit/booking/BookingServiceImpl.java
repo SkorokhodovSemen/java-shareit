@@ -148,7 +148,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingOptional.get();
         validForStatus(booking);
         validForApproveBooker(booking, idUser, isApproved);
-        if (isApproved & booking.getItem().getOwner().getId() == idUser) {
+        if (isApproved && booking.getItem().getOwner().getId() == idUser) {
             booking.setStatus(Status.APPROVED);
         } else if (booking.getBooker().getId() == idUser) {
             booking.setStatus(Status.CANCELED);
@@ -203,7 +203,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkCorrectTime(LocalDateTime start, LocalDateTime end) {
-        if (!(start.isBefore(end) & start.isAfter(LocalDateTime.now()) & end.isAfter(LocalDateTime.now()))) {
+        if (!(start.isBefore(end) && start.isAfter(LocalDateTime.now()) && end.isAfter(LocalDateTime.now()))) {
             throw new ValidationException("Неверные параметры для времени, проверьте правильность запроса");
         }
     }

@@ -85,7 +85,7 @@ public abstract class ItemMapper {
         } else {
             itemOwnerDto.setNextBooking((BookingItem) null);
         }
-        if (bookings.size() == 1 & bookingLast.isEmpty() & bookingNext.isEmpty()) {
+        if (bookings.size() == 1 & bookingLast.isEmpty() && bookingNext.isEmpty()) {
             BookingItem bookingItem = new BookingItem();
             Booking booking = bookings.get(0);
             bookingItem.setBookerId(booking.getBooker().getId());

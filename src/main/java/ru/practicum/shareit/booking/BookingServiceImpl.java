@@ -216,7 +216,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validForApproveBooker(Booking booking, long idUser, boolean isApprove) {
-        if (isApprove & booking.getBooker().getId() == idUser) {
+        if (isApprove && booking.getBooker().getId() == idUser) {
             log.info("Пользователь с id = {} не может одобрить данный запрос с id = {}", booking.getId(), idUser);
             throw new NotFoundException("Вы не можете одобрить данный запрос");
         }

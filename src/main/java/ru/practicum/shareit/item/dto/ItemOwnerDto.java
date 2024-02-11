@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class ItemOwnerDto extends ItemDto {
-    private BookingItem lastBooking;
-    private BookingItem nextBooking;
+    private BookingItemDto lastBooking;
+    private BookingItemDto nextBooking;
 }

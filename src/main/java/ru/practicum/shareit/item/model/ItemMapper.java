@@ -1,8 +1,8 @@
 package ru.practicum.shareit.item.model;
 
-import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -65,33 +65,33 @@ public abstract class ItemMapper {
                 .filter(booking1 -> booking1.getEnd().isBefore(LocalDateTime.now()))
                 .max((booking2, booking3) -> booking2.getEnd().compareTo(booking3.getEnd()));
         if (bookingLast.isPresent()) {
-            BookingItem bookingItem = new BookingItem();
-            bookingItem.setBookerId(bookingLast.get().getBooker().getId());
-            bookingItem.setBooking(bookingLast.get());
-            bookingItem.setId(bookingLast.get().getId());
-            itemOwnerDto.setLastBooking(bookingItem);
+            BookingItemDto bookingItemDto = new BookingItemDto();
+            bookingItemDto.setBookerId(bookingLast.get().getBooker().getId());
+            bookingItemDto.setBooking(bookingLast.get());
+            bookingItemDto.setId(bookingLast.get().getId());
+            itemOwnerDto.setLastBooking(bookingItemDto);
         } else {
-            itemOwnerDto.setLastBooking((BookingItem) null);
+            itemOwnerDto.setLastBooking((BookingItemDto) null);
         }
         Optional<Booking> bookingNext = bookings.stream()
                 .filter(booking1 -> booking1.getStart().isAfter(LocalDateTime.now()))
                 .min((booking2, booking3) -> booking2.getStart().compareTo(booking3.getStart()));
         if (bookingNext.isPresent()) {
-            BookingItem bookingItem = new BookingItem();
-            bookingItem.setBookerId(bookingNext.get().getBooker().getId());
-            bookingItem.setBooking(bookingNext.get());
-            bookingItem.setId(bookingNext.get().getId());
-            itemOwnerDto.setNextBooking(bookingItem);
+            BookingItemDto bookingItemDto = new BookingItemDto();
+            bookingItemDto.setBookerId(bookingNext.get().getBooker().getId());
+            bookingItemDto.setBooking(bookingNext.get());
+            bookingItemDto.setId(bookingNext.get().getId());
+            itemOwnerDto.setNextBooking(bookingItemDto);
         } else {
-            itemOwnerDto.setNextBooking((BookingItem) null);
+            itemOwnerDto.setNextBooking((BookingItemDto) null);
         }
         if (bookings.size() == 1 & bookingLast.isEmpty() && bookingNext.isEmpty()) {
-            BookingItem bookingItem = new BookingItem();
+            BookingItemDto bookingItemDto = new BookingItemDto();
             Booking booking = bookings.get(0);
-            bookingItem.setBookerId(booking.getBooker().getId());
-            bookingItem.setBooking(booking);
-            bookingItem.setId(booking.getId());
-            itemOwnerDto.setLastBooking(bookingItem);
+            bookingItemDto.setBookerId(booking.getBooker().getId());
+            bookingItemDto.setBooking(booking);
+            bookingItemDto.setId(booking.getId());
+            itemOwnerDto.setLastBooking(bookingItemDto);
         }
         return itemOwnerDto;
     }

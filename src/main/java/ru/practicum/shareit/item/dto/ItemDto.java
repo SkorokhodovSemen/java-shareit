@@ -14,8 +14,8 @@ public class ItemDto {
     private String name;
     @NotBlank(message = "Пользователь не заполнил поле description")
     private String description;
-    @AssertTrue(message = "Пользователь не заполнил поле available")
+    @AssertTrue(message = "Поле не может быть false")
     private boolean available;
-    private BookingItem lastBooking;
-    private BookingItem nextBooking;
+    private BookingItemDto lastBooking;
+    private BookingItemDto nextBooking;
 }

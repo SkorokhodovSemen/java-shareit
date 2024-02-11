@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingMapper;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
@@ -29,8 +31,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto getBookingById(long idUser, long bookingId) {
-        Optional<User> userOptional = userRepository.findById(idUser);
-        validFoundForUser(userOptional, idUser);
+        userRepository.findById(idUser)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
         Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
         validFoundForBooking(bookingOptional, bookingId);
         validFoundForBookerOrOwner(bookingOptional, idUser);
@@ -39,35 +41,40 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingForUser(long idUser, String state) {
-        Optional<User> userOptional = userRepository.findById(idUser);
-        validFoundForUser(userOptional, idUser);
-        switch (state) {
-            case "ALL":
+        userRepository.findById(idUser)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
+        try {
+            State.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        switch (State.valueOf(state)) {
+            case ALL:
                 return bookingRepository.findAllByUser(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "CURRENT":
+            case CURRENT:
                 return bookingRepository.findCurrentBooking(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "PAST":
+            case PAST:
                 return bookingRepository.findPastBooking(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "FUTURE":
+            case FUTURE:
                 return bookingRepository.findFutureBooking(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "WAITING":
+            case WAITING:
                 return bookingRepository.findWaitingBooking(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "REJECTED":
+            case REJECTED:
                 return bookingRepository.findRejectedBooking(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
@@ -79,39 +86,44 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingForOwner(long idUser, String state) {
-        Optional<User> userOptional = userRepository.findById(idUser);
-        validFoundForUser(userOptional, idUser);
+        userRepository.findById(idUser)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
         List<Item> items = itemRepository.findByOwner(idUser);
         if (items.isEmpty()) {
             return new ArrayList<>();
         }
-        switch (state) {
-            case "ALL":
+        try {
+            State.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        switch (State.valueOf(state)) {
+            case ALL:
                 return bookingRepository.findAllByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "CURRENT":
+            case CURRENT:
                 return bookingRepository.findCurrentBookingByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "PAST":
+            case PAST:
                 return bookingRepository.findPastBookingByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "FUTURE":
+            case FUTURE:
                 return bookingRepository.findFutureBookingByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "WAITING":
+            case WAITING:
                 return bookingRepository.findWaitingBookingByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toList());
-            case "REJECTED":
+            case REJECTED:
                 return bookingRepository.findRejectedBookingByOwner(idUser)
                         .stream()
                         .map(BookingMapper::toBookingDto)
@@ -140,8 +152,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto approvedBooking(long idUser, long bookingId, boolean isApproved) {
-        Optional<User> userOptional = userRepository.findById(idUser);
-        validFoundForUser(userOptional, idUser);
+        userRepository.findById(idUser)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
         Optional<Booking> bookingOptional = bookingRepository.findById(bookingId);
         validFoundForBooking(bookingOptional, bookingId);
         validFoundForBookerOrOwner(bookingOptional, idUser);

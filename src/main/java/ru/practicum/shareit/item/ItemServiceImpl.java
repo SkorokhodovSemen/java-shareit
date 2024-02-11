@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -14,7 +14,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.util.ArrayList;
@@ -55,8 +55,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemByOwner(long userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        validateFoundForUser(userOptional, userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
         List<Item> items = itemRepository.findByOwner(userId);
         List<ItemDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
@@ -72,8 +72,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemForBooker(String text, long userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        validateFoundForUser(userOptional, userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
         if (text.isBlank()) {
             return new ArrayList<>();
         }

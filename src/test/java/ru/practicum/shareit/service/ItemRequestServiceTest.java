@@ -112,7 +112,7 @@ public class ItemRequestServiceTest {
         }
         try {
             itemRequestService.createItemRequest(100, itemRequestDto);
-        } catch (NotFoundException e){
+        } catch (NotFoundException e) {
             assertThat(e.getMessage(), equalTo("Пользователь с id = 100 не найден"));
         }
     }

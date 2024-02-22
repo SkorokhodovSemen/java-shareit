@@ -116,6 +116,7 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id").value(itemRequestDto1.getId()))
                 .andExpect(jsonPath("$.description").value(itemRequestDto1.getDescription()));
     }
+
     @Test
     void findItemRequestByIdWrongIdUser() throws Exception {
         Mockito.when(itemRequestService.findItemRequestById(Mockito.anyLong(), Mockito.anyLong()))
@@ -124,6 +125,7 @@ public class ItemRequestControllerTest {
                         .header("X-Sharer-User-Id", 100))
                 .andExpect(status().is4xxClientError());
     }
+
     @Test
     void findItemRequestByIdWrongIdRequest() throws Exception {
         Mockito.when(itemRequestService.findItemRequestById(Mockito.anyLong(), Mockito.anyLong()))

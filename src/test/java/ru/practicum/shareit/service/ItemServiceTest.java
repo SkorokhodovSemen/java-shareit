@@ -74,8 +74,9 @@ public class ItemServiceTest {
         assertThat(itemDtos.size(), equalTo(items.size()));
         assertThat(itemDtos.get(0).getId(), equalTo(items.get(0).getId()));
     }
+
     @Test
-    void updateItem()  {
+    void updateItem() {
         UserDto userDto = userService.createUser(userDto1);
         ItemDto itemDto = itemService.createItem(userDto.getId(), itemDto1);
         itemService.updateItem(userDto.getId(), itemDto2, itemDto.getId());

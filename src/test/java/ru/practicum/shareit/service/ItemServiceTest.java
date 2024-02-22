@@ -42,6 +42,7 @@ public class ItemServiceTest {
     UserDto userDto2 = new UserDto();
     ItemDto itemDto1 = new ItemDto();
     ItemDto itemDto2 = new ItemDto();
+    ItemDto itemDto5 = new ItemDto();
     CommentDto commentDto1 = new CommentDto();
 
     @BeforeEach
@@ -56,6 +57,7 @@ public class ItemServiceTest {
         itemDto2.setAvailable(true);
         itemDto2.setDescription("update");
         itemDto2.setName("update");
+        itemDto5.setName("update");
         commentDto1.setText("test");
     }
 
@@ -85,6 +87,11 @@ public class ItemServiceTest {
         assertThat(item.getName(), equalTo(itemDto2.getName()));
         assertThat(item.getDescription(), equalTo(itemDto2.getDescription()));
         assertThat(item.getOwner(), equalTo(UserMapper.toUser(userDto)));
+        ItemDto itemDto3 = itemService.updateItem(userDto.getId(), itemDto5, itemDto.getId());
+        TypedQuery<Item> query2 = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        Item item2 = query2.setParameter("id", itemDto.getId()).getSingleResult();
+        assertThat(item2.getName(), equalTo(itemDto3.getName()));
+
     }
 
     @Test
@@ -108,5 +115,24 @@ public class ItemServiceTest {
                 .compareTo(commentDto.getCreated().truncatedTo(ChronoUnit.MINUTES)), equalTo(0));
         assertThat(comment.getText(), equalTo(commentDto.getText()));
         assertThat(comment.getId(), equalTo(commentDto.getId()));
+    }
+
+    @Test
+    void getItemByIdAndGetItemForBooker() {
+        UserDto userDto = userService.createUser(userDto1);
+        ItemDto itemDto = itemService.createItem(userDto.getId(), itemDto1);
+        ItemDto itemDto1 = itemService.getItemById(itemDto.getId(), userDto.getId());
+        TypedQuery<Item> query = em.createQuery("SELECT i FROM Item i WHERE i.name = :name", Item.class);
+        Item item = query.setParameter("name", itemDto1.getName()).getSingleResult();
+        assertThat(item.getName(), equalTo(itemDto1.getName()));
+        assertThat(item.getDescription(), equalTo(itemDto1.getDescription()));
+        assertThat(item.getOwner(), equalTo(UserMapper.toUser(userDto)));
+        UserDto userDto3 = userService.createUser(userDto2);
+        List<ItemDto> itemDtos = itemService.getItemForBooker("test", userDto3.getId(), 0, 1);
+        TypedQuery<Item> query1 = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        List<Item> items = query1.setParameter("id", itemDto.getId()).getResultList();
+        assertThat(items.size(), equalTo(itemDtos.size()));
+        assertThat(items.get(0).getDescription(), equalTo(itemDtos.get(0).getDescription()));
+        assertThat(items.get(0).getName(), equalTo(itemDtos.get(0).getName()));
     }
 }

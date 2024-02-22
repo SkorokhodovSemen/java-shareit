@@ -73,4 +73,31 @@ public class BookingServiceTest {
         assertThat(bookings.size(), equalTo(bookingDtos.size()));
         assertThat(bookings.get(0).getId(), equalTo(bookingDtos.get(0).getId()));
     }
+
+    @Test
+    void getBookingForUserAndGetBookingById() throws Exception {
+        UserDto userDto = userService.createUser(userDto1);
+        UserDto userDtoTest = userService.createUser(userDto2);
+        ItemDto itemDto = itemService.createItem(userDto.getId(), itemDto1);
+        ItemDto itemDtoTest = itemService.createItem(userDtoTest.getId(), itemDto2);
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setItemId(itemDtoTest.getId());
+        bookingDto.setStart(LocalDateTime.now().plusSeconds(100));
+        bookingDto.setEnd(LocalDateTime.now().plusSeconds(200));
+        BookingDto bookingDtoTest = bookingService.createBooking(userDto.getId(), bookingDto);
+        TypedQuery<Booking> query =
+                em.createQuery("SELECT b FROM Booking b WHERE ((b.booker.id = :id) AND (b.status = 'WAITING'))",
+                        Booking.class);
+        List<Booking> bookings = query.setParameter("id", userDto.getId()).getResultList();
+        List<BookingDto> bookingDtos = bookingService
+                .getBookingForUser(userDto.getId(), "WAITING", 0, 1);
+        assertThat(bookings.size(), equalTo(bookingDtos.size()));
+        assertThat(bookings.get(0).getId(), equalTo(bookingDtos.get(0).getId()));
+        BookingDto bookingDto1 = bookingService.getBookingById(userDto.getId(), bookingDtoTest.getId());
+        TypedQuery<Booking> query1 =
+                em.createQuery("SELECT b FROM Booking b WHERE b.id = :id", Booking.class);
+        Booking booking = query1.setParameter("id", bookingDtoTest.getId()).getSingleResult();
+        assertThat(booking.getId(), equalTo(bookingDto1.getId()));
+        assertThat(booking.getBooker().getId(), equalTo(bookingDto1.getBooker().getId()));
+    }
 }

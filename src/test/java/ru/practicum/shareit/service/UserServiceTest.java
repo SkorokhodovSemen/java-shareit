@@ -13,6 +13,8 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import java.util.List;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -32,29 +34,34 @@ public class UserServiceTest {
     void setUp() {
         userDto1.setName("test");
         userDto1.setEmail("test@test.ru");
-        userDto2.setName("update");
         userDto2.setEmail("update@update.ru");
     }
 
     @Test
-    void createUser() {
+    void createUserAndGetAllUser() {
         userService.createUser(userDto1);
         TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class);
         User user = query.setParameter("email", userDto1.getEmail()).getSingleResult();
         assertThat(user.getId(), notNullValue());
         assertThat(user.getName(), equalTo(userDto1.getName()));
         assertThat(user.getEmail(), equalTo(userDto1.getEmail()));
+        List<UserDto> userDtos = userService.getAllUser();
+        TypedQuery<User> query1 = em.createQuery("SELECT u FROM User u", User.class);
+        List<User> users = query1.getResultList();
+        assertThat(users.size(), equalTo(userDtos.size()));
+        assertThat(users.get(0).getId(), equalTo(userDtos.get(0).getId()));
     }
 
     @Test
-    void updateUser() {
-        userService.createUser(userDto1);
+    void updateUserAndDeleteUser() {
+        UserDto userDto = userService.createUser(userDto1);
         userService.updateUser(1, userDto2);
-        TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class);
-        User user = query.setParameter("email", userDto2.getEmail()).getSingleResult();
+        TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.id = :id", User.class);
+        User user = query.setParameter("id", userDto.getId()).getSingleResult();
         assertThat(user.getId(), notNullValue());
-        assertThat(user.getName(), equalTo(userDto2.getName()));
         assertThat(user.getEmail(), equalTo(userDto2.getEmail()));
+        userService.deleteUserById(userDto.getId());
+        assertThat(userService.getAllUser().size(), equalTo(0));
     }
 
     @Test

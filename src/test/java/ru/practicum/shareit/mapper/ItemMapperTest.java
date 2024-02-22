@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class ItemMapperTest {
 
     @Test
-    void ItemMapper() {
+    void itemMapper() {
         User user = new User();
         user.setId(1);
         user.setEmail("test@test.ru");

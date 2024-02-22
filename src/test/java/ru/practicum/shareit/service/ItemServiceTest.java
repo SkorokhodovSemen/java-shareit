@@ -64,12 +64,18 @@ public class ItemServiceTest {
     @Test
     void createItemAndGetItemByOwner() {
         UserDto userDto = userService.createUser(userDto1);
-        itemService.createItem(userDto.getId(), itemDto1);
+        UserDto userDto3 = userService.createUser(userDto2);
+        ItemDto itemDto = itemService.createItem(userDto.getId(), itemDto1);
         TypedQuery<Item> query = em.createQuery("SELECT i FROM Item i WHERE i.name = :name", Item.class);
         Item item = query.setParameter("name", itemDto1.getName()).getSingleResult();
         assertThat(item.getName(), equalTo(itemDto1.getName()));
         assertThat(item.getDescription(), equalTo(itemDto1.getDescription()));
         assertThat(item.getOwner(), equalTo(UserMapper.toUser(userDto)));
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setItemId(itemDto.getId());
+        bookingDto.setStart(LocalDateTime.now().plusSeconds(1));
+        bookingDto.setEnd(LocalDateTime.now().plusSeconds(2));
+        bookingService.createBooking(userDto3.getId(), bookingDto);
         List<ItemDto> itemDtos = itemService.getItemByOwner(userDto.getId(), 0, 1);
         TypedQuery<Item> query1 = em.createQuery("SELECT i FROM Item i WHERE i.owner.id = :id", Item.class);
         List<Item> items = query1.setParameter("id", userDto.getId()).getResultList();

@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
@@ -9,50 +11,50 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(value = "SELECT b FROM Booking b WHERE b.booker.id = ?1 ORDER BY b.start DESC")
-    List<Booking> findAllByUser(long idUser);
+    Page<Booking> findAllByUser(long userId, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.booker.id = ?1) AND " +
             "(CURRENT_TIME BETWEEN b.start AND b.end)) ORDER BY b.start DESC")
-    List<Booking> findCurrentBooking(long idUser);
+    Page<Booking> findCurrentBooking(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.booker.id = ?1) AND " +
             "(CURRENT_TIME > b.end)) ORDER BY b.start DESC")
-    List<Booking> findPastBooking(long idUser);
+    Page<Booking> findPastBooking(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.booker.id = ?1) AND " +
             "(CURRENT_TIME < b.start)) ORDER BY b.start DESC")
-    List<Booking> findFutureBooking(long idUser);
+    Page<Booking> findFutureBooking(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.booker.id = ?1) AND " +
             "(b.status = 'WAITING')) ORDER BY b.start DESC")
-    List<Booking> findWaitingBooking(long idUser);
+    Page<Booking> findWaitingBooking(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.booker.id = ?1) AND " +
             "(b.status = 'REJECTED')) ORDER BY b.start DESC")
-    List<Booking> findRejectedBooking(long idUser);
+    Page<Booking> findRejectedBooking(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE b.item.owner.id = ?1 ORDER BY b.start DESC")
-    List<Booking> findAllByOwner(long idUser);
+    Page<Booking> findAllByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.owner.id = ?1) AND " +
             "(CURRENT_TIME BETWEEN b.start AND b.end)) ORDER BY b.start DESC")
-    List<Booking> findCurrentBookingByOwner(long idUser);
+    Page<Booking> findCurrentBookingByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.owner.id = ?1) AND " +
             "(CURRENT_TIME > b.end)) ORDER BY b.start DESC")
-    List<Booking> findPastBookingByOwner(long idUser);
+    Page<Booking> findPastBookingByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.owner.id = ?1) AND " +
             "(CURRENT_TIME < b.start)) ORDER BY b.start DESC")
-    List<Booking> findFutureBookingByOwner(long idUser);
+    Page<Booking> findFutureBookingByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.owner.id = ?1) AND " +
             "(b.status = 'WAITING')) ORDER BY b.start DESC")
-    List<Booking> findWaitingBookingByOwner(long idUser);
+    Page<Booking> findWaitingBookingByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.owner.id = ?1) AND " +
             "(b.status = 'REJECTED')) ORDER BY b.start DESC")
-    List<Booking> findRejectedBookingByOwner(long idUser);
+    Page<Booking> findRejectedBookingByOwner(long idUser, Pageable page);
 
     @Query(value = "SELECT b FROM Booking b WHERE ((b.item.id = ?1) AND " +
             "((b.start > ?2 AND b.start < ?3) OR (b.end > ?2 AND b.end < ?3))) ORDER BY b.start DESC")

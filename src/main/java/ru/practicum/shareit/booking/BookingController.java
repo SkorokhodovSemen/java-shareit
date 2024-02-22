@@ -24,16 +24,20 @@ public class BookingController {
 
     @GetMapping()
     public List<BookingDto> getBookingForUser(@RequestHeader("X-Sharer-User-Id") long idUser,
-                                              @RequestParam(name = "state", defaultValue = "ALL") String state) {
+                                              @RequestParam(name = "state", defaultValue = "ALL") String state,
+                                              @RequestParam(name = "from", defaultValue = "0") int from,
+                                              @RequestParam(name = "size", defaultValue = "20") int size) {
         log.info("Получен запрос на получение информации о бронированиях пользователя с id = {}", idUser);
-        return bookingService.getBookingForUser(idUser, state);
+        return bookingService.getBookingForUser(idUser, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getBookingForOwner(@RequestHeader("X-Sharer-User-Id") long idUser,
-                                               @RequestParam(name = "state", defaultValue = "ALL") String state) {
+                                               @RequestParam(name = "state", defaultValue = "ALL") String state,
+                                               @RequestParam(name = "from", defaultValue = "0") int from,
+                                               @RequestParam(name = "size", defaultValue = "20") int size) {
         log.info("Получен запрос на получение информации о статусе вещей владельца с id = {}", idUser);
-        return bookingService.getBookingForOwner(idUser, state);
+        return bookingService.getBookingForOwner(idUser, state, from, size);
     }
 
     @PostMapping()

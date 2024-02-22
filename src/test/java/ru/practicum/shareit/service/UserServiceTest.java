@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -29,12 +30,17 @@ public class UserServiceTest {
     private final UserService userService;
     UserDto userDto1 = new UserDto();
     UserDto userDto2 = new UserDto();
+    UserDto userDto3 = new UserDto();
+    UserDto userDto4 = new UserDto();
 
     @BeforeEach
     void setUp() {
         userDto1.setName("test");
         userDto1.setEmail("test@test.ru");
         userDto2.setEmail("update@update.ru");
+        userDto3.setName("test3");
+        userDto4.setName("test4");
+        userDto4.setEmail("test4@test4.ru");
     }
 
     @Test
@@ -60,6 +66,10 @@ public class UserServiceTest {
         User user = query.setParameter("id", userDto.getId()).getSingleResult();
         assertThat(user.getId(), notNullValue());
         assertThat(user.getEmail(), equalTo(userDto2.getEmail()));
+        UserDto userDto5 = userService.updateUser(userDto.getId(), userDto3);
+        assertThat(userDto5.getName(), equalTo(userDto3.getName()));
+        UserDto userDto6 = userService.updateUser(userDto.getId(), userDto4);
+        assertThat(userDto6.getName(), equalTo(userDto4.getName()));
         userService.deleteUserById(userDto.getId());
         assertThat(userService.getAllUser().size(), equalTo(0));
     }
@@ -72,5 +82,10 @@ public class UserServiceTest {
         User user = query.setParameter("email", userDto1.getEmail()).getSingleResult();
         assertThat(user.getEmail(), equalTo(userDto.getEmail()));
         assertThat(user.getId(), equalTo(userDto.getId()));
+        try {
+            userService.findUserById(100);
+        } catch (NotFoundException e) {
+            assertThat(e.getMessage(), equalTo("Пользователь не найден"));
+        }
     }
 }

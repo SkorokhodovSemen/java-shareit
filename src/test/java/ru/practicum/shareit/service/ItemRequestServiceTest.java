@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.ItemRequest;
@@ -91,5 +93,27 @@ public class ItemRequestServiceTest {
         assertThat(itemRequests1.get(0).getRequestor().getId(),
                 equalTo(itemRequestDtos1.get(0).getRequestor().getId()));
 
+    }
+
+    @Test
+    void catchException() {
+        UserDto userDto = userService.createUser(userDto1);
+        UserDto userDtoTest = userService.createUser(userDto2);
+        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(userDto.getId(), itemRequestDto1);
+        try {
+            itemRequestService.findItemRequestById(1, 200);
+        } catch (NotFoundException e) {
+            assertThat(e.getMessage(), equalTo("Запроса с id = 200 не существует"));
+        }
+        try {
+            itemRequestService.findAllItemRequest(1, -1, 1);
+        } catch (ValidationException e) {
+            assertThat(e.getMessage(), equalTo("Проверьте правильность введенных параметров"));
+        }
+        try {
+            itemRequestService.createItemRequest(100, itemRequestDto);
+        } catch (NotFoundException e){
+            assertThat(e.getMessage(), equalTo("Пользователь с id = 100 не найден"));
+        }
     }
 }

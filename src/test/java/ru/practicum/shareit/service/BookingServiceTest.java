@@ -261,9 +261,9 @@ public class BookingServiceTest {
         bookingDto.setStart(start);
         bookingDto.setEnd(end);
         //Попытка создать бронирование с неправильным времененем
-        NotFoundException NotFoundExceptionWithOwnerId = assertThrows(NotFoundException.class,
+        NotFoundException notFoundExceptionWithOwnerId = assertThrows(NotFoundException.class,
                 () -> bookingService.createBooking(userDtoCreate2.getId(), bookingDto));
-        assertThat(NotFoundExceptionWithOwnerId.getMessage(),
+        assertThat(notFoundExceptionWithOwnerId.getMessage(),
                 equalTo("Вы не можете создать бронирование на свою вещь"));
     }
 

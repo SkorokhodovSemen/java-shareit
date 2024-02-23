@@ -1,15 +1,19 @@
 package ru.practicum.shareit.service;
 
 import lombok.RequiredArgsConstructor;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.model.UserMapper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -19,6 +23,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -56,6 +61,30 @@ public class UserServiceTest {
         List<User> users = query1.getResultList();
         assertThat(users.size(), equalTo(userDtos.size()));
         assertThat(users.get(0).getId(), equalTo(userDtos.get(0).getId()));
+    }
+
+    @Test
+    void createUserWithExistsEmail() {
+        userService.createUser(userDto1);
+        DataIntegrityViolationException dataIntegrityViolationException = assertThrows(DataIntegrityViolationException.class,
+                () -> userService.createUser(userDto1));
+        assertThat(dataIntegrityViolationException.getMessage(),
+                equalTo("could not execute statement; SQL [n/a]; " +
+                        "constraint [null]; " +
+                        "nested exception is org.hibernate.exception.ConstraintViolationException: " +
+                        "could not execute statement"));
+    }
+
+    @Test
+    void createUserWithEmptyEmail() {
+        UserDto userDto = new UserDto();
+        userDto.setEmail("test");
+        DataIntegrityViolationException conflictException
+                = assertThrows(DataIntegrityViolationException.class,
+                () -> userService.createUser(userDto));
+        assertThat(conflictException.getMessage(), equalTo("could not execute statement; SQL [n/a]; " +
+                "constraint [null]; nested exception is org.hibernate.exception.ConstraintViolationException: " +
+                "could not execute statement"));
     }
 
     @Test

@@ -58,8 +58,8 @@ public class UserControllerTestMock {
 
     @Test
     void createUserWithEmptyEmail() throws Exception {
-        Mockito.when(userService.createUser(Mockito.any())).
-                thenThrow(new ConflictException("Поле email не заполнено"));
+        Mockito.when(userService.createUser(Mockito.any()))
+                        .thenThrow(new ConflictException("Поле email не заполнено"));
         ConflictException throwable = assertThrows(ConflictException.class,
                 () -> userController.createUser(userDto2));
         assertThat(throwable.getMessage(), equalTo("Поле email не заполнено"));
@@ -67,8 +67,8 @@ public class UserControllerTestMock {
 
     @Test
     void createUserWithExistEmail() throws Exception {
-        Mockito.when(userService.createUser(Mockito.any())).
-                thenThrow(new ConflictException("Такой email уже существует"));
+        Mockito.when(userService.createUser(Mockito.any()))
+                        .thenThrow(new ConflictException("Такой email уже существует"));
         ConflictException throwable = assertThrows(ConflictException.class,
                 () -> userController.createUser(userDto3));
         assertThat(throwable.getMessage(), equalTo("Такой email уже существует"));

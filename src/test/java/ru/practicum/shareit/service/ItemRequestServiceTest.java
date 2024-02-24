@@ -192,8 +192,8 @@ public class ItemRequestServiceTest {
                 itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
         ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate2.getId(), itemDto1);
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                ()-> itemRequestService.findAllItemRequestForRequestor(userDtoCreate1.getId()+2));
+                () -> itemRequestService.findAllItemRequestForRequestor(userDtoCreate1.getId() + 2));
         assertThat(notFoundException.getMessage(),
-                equalTo("Пользователь с id = " + (userDtoCreate1.getId()+2) + " не найден"));
+                equalTo("Пользователь с id = " + (userDtoCreate1.getId() + 2) + " не найден"));
     }
 }

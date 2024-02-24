@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -47,6 +48,7 @@ public class ItemRequestServiceTest {
         itemDto1.setAvailable(true);
         itemDto1.setDescription("test");
         itemDto1.setName("test");
+        itemDto1.setRequestId(1);
         itemDto2.setAvailable(true);
         itemDto2.setDescription("update");
         itemDto2.setName("update");
@@ -54,66 +56,144 @@ public class ItemRequestServiceTest {
     }
 
     @Test
-    void testAllMethodInItemRequestService() {
-        UserDto userDto = userService.createUser(userDto1);
-        UserDto userDtoTest = userService.createUser(userDto2);
-        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(userDto.getId(), itemRequestDto1);
-        itemDto2.setRequestId(itemRequestDto.getId());
-        itemService.createItem(userDtoTest.getId(), itemDto2);
+    void createItemRequest() {
+        UserDto userDtoCreate = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate = itemRequestService.createItemRequest(userDtoCreate.getId(), itemRequestDto1);
         TypedQuery<ItemRequest> createItemRequest =
                 em.createQuery("SELECT i FROM ItemRequest i WHERE i.id = :id", ItemRequest.class);
-        ItemRequest item = createItemRequest.setParameter("id", itemRequestDto.getId()).getSingleResult();
-        assertThat(item.getId(), equalTo(itemRequestDto.getId()));
-        assertThat(item.getDescription(), equalTo(itemRequestDto.getDescription()));
-        assertThat(item.getRequestor().getId(), equalTo(itemRequestDto.getRequestor().getId()));
-        List<ItemRequestDto> itemRequestDtos =
-                itemRequestService.findAllItemRequest(userDtoTest.getId(), 0, 1);
-        TypedQuery<ItemRequest> findAllItemRequest =
-                em.createQuery("SELECT i FROM ItemRequest i WHERE i.requestor.id = :id", ItemRequest.class);
-        List<ItemRequest> itemRequests = findAllItemRequest.setParameter("id", userDto.getId()).getResultList();
-        assertThat(itemRequests.size(), equalTo(itemRequestDtos.size()));
-        assertThat(itemRequests.get(0).getId(), equalTo(itemRequestDtos.get(0).getId()));
-        assertThat(itemRequests.get(0).getDescription(), equalTo(itemRequestDtos.get(0).getDescription()));
-        ItemRequestDto itemRequestDto2 =
-                itemRequestService.findItemRequestById(userDto.getId(), itemRequestDto.getId());
-        TypedQuery<ItemRequest> findItemRequestById =
-                em.createQuery("SELECT i FROM ItemRequest i WHERE i.requestor.id = :id", ItemRequest.class);
-        ItemRequest itemRequest = findItemRequestById.setParameter("id", itemRequestDto2.getId()).getSingleResult();
-        assertThat(itemRequest.getId(), equalTo(itemRequestDto2.getId()));
-        assertThat(itemRequest.getRequestor().getId(), equalTo(itemRequestDto2.getRequestor().getId()));
-        assertThat(itemRequest.getDescription(), equalTo(itemRequestDto2.getDescription()));
-        List<ItemRequestDto> itemRequestDtos1 =
-                itemRequestService.findAllItemRequestForRequestor(userDto.getId());
-        TypedQuery<ItemRequest> findAllItemRequestForRequestor =
-                em.createQuery("SELECT i FROM ItemRequest i WHERE i.requestor.id <> :id", ItemRequest.class);
-        List<ItemRequest> itemRequests1 =
-                findAllItemRequestForRequestor.setParameter("id", userDtoTest.getId()).getResultList();
-        assertThat(itemRequests1.size(), equalTo(itemRequestDtos1.size()));
-        assertThat(itemRequests1.get(0).getDescription(), equalTo(itemRequestDtos1.get(0).getDescription()));
-        assertThat(itemRequests1.get(0).getRequestor().getId(),
-                equalTo(itemRequestDtos1.get(0).getRequestor().getId()));
-
+        ItemRequest item = createItemRequest.setParameter("id", itemRequestCreate.getId()).getSingleResult();
+        assertThat(item.getId(), equalTo(itemRequestCreate.getId()));
+        assertThat(item.getDescription(), equalTo(itemRequestCreate.getDescription()));
+        assertThat(item.getRequestor().getId(), equalTo(itemRequestCreate.getRequestor().getId()));
     }
 
     @Test
-    void catchException() {
-        UserDto userDto = userService.createUser(userDto1);
-        UserDto userDtoTest = userService.createUser(userDto2);
-        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(userDto.getId(), itemRequestDto1);
-        try {
-            itemRequestService.findItemRequestById(1, 200);
-        } catch (NotFoundException e) {
-            assertThat(e.getMessage(), equalTo("Запроса с id = 200 не существует"));
-        }
-        try {
-            itemRequestService.findAllItemRequest(1, -1, 1);
-        } catch (ValidationException e) {
-            assertThat(e.getMessage(), equalTo("Проверьте правильность введенных параметров"));
-        }
-        try {
-            itemRequestService.createItemRequest(100, itemRequestDto);
-        } catch (NotFoundException e) {
-            assertThat(e.getMessage(), equalTo("Пользователь с id = 100 не найден"));
-        }
+    void createItemRequestWrongIdUser() {
+        UserDto userDtoCreate = userService.createUser(userDto1);
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestService.createItemRequest(userDtoCreate.getId() + 1, itemRequestDto1));
+        assertThat(notFoundException.getMessage(),
+                equalTo("Пользователь с id = " + (userDtoCreate.getId() + 1) + " не найден"));
+    }
+
+    @Test
+    void findItemRequestById() {
+        UserDto userDtoCreate = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate = itemRequestService.createItemRequest(userDtoCreate.getId(), itemRequestDto1);
+        TypedQuery<ItemRequest> createItemRequest =
+                em.createQuery("SELECT i FROM ItemRequest i WHERE i.id = :id", ItemRequest.class);
+        ItemRequest item = createItemRequest.setParameter("id", itemRequestCreate.getId()).getSingleResult();
+        ItemRequestDto itemRequestDto =
+                itemRequestService.findItemRequestById(userDtoCreate.getId(), itemRequestCreate.getId());
+        assertThat(item.getId(), equalTo(itemRequestDto.getId()));
+        assertThat(item.getRequestor(), equalTo(itemRequestDto.getRequestor()));
+    }
+
+    @Test
+    void findItemRequestByIdWrongIdUser() {
+        UserDto userDtoCreate = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate = itemRequestService.createItemRequest(userDtoCreate.getId(), itemRequestDto1);
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestService
+                        .findItemRequestById(userDtoCreate.getId() + 1, itemRequestCreate.getId()));
+        assertThat(notFoundException.getMessage(),
+                equalTo("Пользователь с id = " + (userDtoCreate.getId() + 1) + " не найден"));
+    }
+
+    @Test
+    void findItemRequestByIdWrongIdItemRequest() {
+        UserDto userDtoCreate = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate = itemRequestService.createItemRequest(userDtoCreate.getId(), itemRequestDto1);
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestService
+                        .findItemRequestById(userDtoCreate.getId(), itemRequestCreate.getId() + 1));
+        assertThat(notFoundException.getMessage(),
+                equalTo("Запроса с id = " + (itemRequestCreate.getId() + 1) + " не существует"));
+    }
+
+    @Test
+    void findAllItemRequest() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        TypedQuery<ItemRequest> createItemRequest =
+                em.createQuery("SELECT i FROM ItemRequest i WHERE i.id = :id", ItemRequest.class);
+        List<ItemRequest> items = createItemRequest.setParameter("id", itemRequestCreate.getId()).getResultList();
+        List<ItemRequestDto> itemRequestDtos =
+                itemRequestService.findAllItemRequest(userDtoCreate2.getId(), 0, 1);
+        assertThat(items.size(), equalTo(itemRequestDtos.size()));
+        assertThat(items.get(0).getId(), equalTo(itemRequestDtos.get(0).getId()));
+    }
+
+    @Test
+    void findAllItemRequestWrongIdUser() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestService
+                        .findAllItemRequest(userDtoCreate1.getId() + 1, 0, 1));
+        assertThat(notFoundException.getMessage(),
+                equalTo("Пользователь с id = " + (userDtoCreate1.getId() + 1) + " не найден"));
+    }
+
+    @Test
+    void findAllItemRequestWrongParameters() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        ValidationException validationException = assertThrows(ValidationException.class,
+                () -> itemRequestService
+                        .findAllItemRequest(userDtoCreate1.getId(), -1, 1));
+        assertThat(validationException.getMessage(),
+                equalTo("Проверьте правильность введенных параметров"));
+    }
+
+    @Test
+    void findAllItemRequestWithItem() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate2.getId(), itemDto1);
+        TypedQuery<ItemRequest> createItemRequest =
+                em.createQuery("SELECT i FROM ItemRequest i WHERE i.id = :id", ItemRequest.class);
+        List<ItemRequest> items = createItemRequest.setParameter("id", itemRequestCreate.getId()).getResultList();
+        List<ItemRequestDto> itemRequestDtos =
+                itemRequestService.findAllItemRequest(userDtoCreate2.getId(), 0, 1);
+        assertThat(items.size(), equalTo(itemRequestDtos.size()));
+        assertThat(items.get(0).getId(), equalTo(itemRequestDtos.get(0).getId()));
+        assertThat(itemRequestDtos.get(0).getItems().size(), equalTo(1));
+    }
+
+    @Test
+    void findAllItemRequestForRequestorWithItem() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate2.getId(), itemDto1);
+        TypedQuery<ItemRequest> createItemRequest =
+                em.createQuery("SELECT i FROM ItemRequest i WHERE i.id = :id", ItemRequest.class);
+        List<ItemRequest> items = createItemRequest.setParameter("id", itemRequestCreate.getId()).getResultList();
+        List<ItemRequestDto> itemRequestDtos =
+                itemRequestService.findAllItemRequestForRequestor(userDtoCreate1.getId());
+        assertThat(items.size(), equalTo(itemRequestDtos.size()));
+        assertThat(items.get(0).getId(), equalTo(itemRequestDtos.get(0).getId()));
+        assertThat(itemRequestDtos.get(0).getItems().size(), equalTo(1));
+    }
+
+    @Test
+    void findAllItemRequestForRequestorWithItemWrongIdUser() {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemRequestDto itemRequestCreate =
+                itemRequestService.createItemRequest(userDtoCreate1.getId(), itemRequestDto1);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate2.getId(), itemDto1);
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                ()-> itemRequestService.findAllItemRequestForRequestor(userDtoCreate1.getId()+2));
+        assertThat(notFoundException.getMessage(),
+                equalTo("Пользователь с id = " + (userDtoCreate1.getId()+2) + " не найден"));
     }
 }

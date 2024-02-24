@@ -1,4 +1,4 @@
-package ru.practicum.shareit.controller;
+package ru.practicum.shareit.itemRequest;
 
 
 import lombok.RequiredArgsConstructor;

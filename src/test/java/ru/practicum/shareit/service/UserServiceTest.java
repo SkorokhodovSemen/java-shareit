@@ -73,6 +73,18 @@ public class UserServiceTest {
     }
 
     @Test
+    void createUserWithExistsEmail2() {
+        userService.createUser(userDto1);
+        Throwable throwable = assertThrows(Throwable.class,
+                () -> userService.createUser(userDto1));
+        assertThat(throwable.getMessage(),
+                equalTo("could not execute statement; SQL [n/a]; " +
+                        "constraint [null]; " +
+                        "nested exception is org.hibernate.exception.ConstraintViolationException: " +
+                        "could not execute statement"));
+    }
+
+    @Test
     void createUserWithEmptyEmail() {
         UserDto userDto = new UserDto();
         userDto.setEmail("test");

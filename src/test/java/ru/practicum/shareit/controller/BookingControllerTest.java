@@ -126,4 +126,22 @@ public class BookingControllerTest {
                         .header("X-Sharer-User-Id", 1))
                 .andExpect(status().is4xxClientError());
     }
+
+    @Test
+    void getBookingByIdWrongIdUser() throws Exception {
+        Mockito.when(bookingService.getBookingById(Mockito.anyLong(), Mockito.anyLong()))
+                .thenThrow(new NotFoundException("Пользователь не найден"));
+        mockMvc.perform(get("/bookings/{bookingId}", 1)
+                        .header("X-Sharer-User-Id", 100))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void getBookingByIdIncorrectIdUser() throws Exception {
+        Mockito.when(bookingService.getBookingById(Mockito.anyLong(), Mockito.anyLong()))
+                .thenThrow(new NotFoundException("Бронирование не найдено"));
+        mockMvc.perform(get("/bookings/{bookingId}", 1)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().is4xxClientError());
+    }
 }

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ItemRequestServiceTest {
+public class ItemRequestServiceImplTest {
 
     private final EntityManager em;
     private final ItemService itemService;

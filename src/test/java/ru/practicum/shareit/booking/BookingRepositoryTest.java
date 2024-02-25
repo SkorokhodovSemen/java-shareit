@@ -8,8 +8,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -18,6 +16,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -91,5 +90,34 @@ public class BookingRepositoryTest {
         List<Booking> findBookingByItemAndOwner = bookingRepository
                 .findBookingByItemAndOwner(1, 1);
         Assertions.assertEquals(findBookingByItemAndOwner.size(), 1);
+    }
+
+    @Test
+    void findPastBooking() throws Exception {
+        Booking booking1 = new Booking();
+        booking1.setStatus(Status.APPROVED);
+        booking1.setItem(item);
+        booking1.setEnd(LocalDateTime.now().plusSeconds(2));
+        booking1.setStart(LocalDateTime.now().plusSeconds(1));
+        booking1.setBooker(user2);
+        TimeUnit.SECONDS.sleep(4);
+        em.persist(booking1);
+        List<Booking> findPastBooking = bookingRepository
+                .findPastBooking(user2.getId(), PageRequest.of(0, 1)).getContent();
+        Assertions.assertEquals(findPastBooking.size(), 1);
+    }
+
+    @Test
+    void findWaitingBooking() throws Exception {
+        Booking booking1 = new Booking();
+        booking1.setStatus(Status.WAITING);
+        booking1.setItem(item);
+        booking1.setEnd(LocalDateTime.now().plusSeconds(20));
+        booking1.setStart(LocalDateTime.now().plusSeconds(10));
+        booking1.setBooker(user2);
+        em.persist(booking1);
+        List<Booking> findPastBooking = bookingRepository
+                .findWaitingBooking(user2.getId(), PageRequest.of(0, 1)).getContent();
+        Assertions.assertEquals(findPastBooking.size(), 1);
     }
 }

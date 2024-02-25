@@ -264,6 +264,72 @@ public class ItemServiceImplTest {
     }
 
     @Test
+    void getItemByIdWithNextBooking() throws Exception {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate1.getId(), itemDto1);
+        ItemDto itemDtoCreate2 = itemService.createItem(userDtoCreate2.getId(), itemDto2);
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setItemId(itemDtoCreate2.getId());
+        bookingDto.setStart(LocalDateTime.now().plusSeconds(1));
+        bookingDto.setEnd(LocalDateTime.now().plusSeconds(2));
+        BookingDto bookingDtoCreate = bookingService.createBooking(userDtoCreate1.getId(), bookingDto);
+        BookingDto bookingDto2 = new BookingDto();
+        bookingDto2.setItemId(itemDtoCreate2.getId());
+        bookingDto2.setStart(LocalDateTime.now().plusSeconds(100));
+        bookingDto2.setEnd(LocalDateTime.now().plusSeconds(200));
+        BookingDto bookingDtoCreate2 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto2);
+        bookingService.approvedBooking(userDtoCreate2.getId(), bookingDtoCreate.getId(), true);
+        TimeUnit.SECONDS.sleep(4);
+        CommentDto commentDto = itemService.createComment(userDtoCreate1.getId(), commentDto1, itemDtoCreate2.getId());
+        ItemDto itemDtoGet1 = itemService.getItemById(itemDtoCreate2.getId(), userDtoCreate1.getId());
+        TypedQuery<Item> query = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        Item item = query.setParameter("id", itemDtoCreate2.getId()).getSingleResult();
+        assertThat(item.getId(), equalTo(itemDtoGet1.getId()));
+        assertThat(item.getDescription(), equalTo(itemDtoGet1.getDescription()));
+        assertThat(item.getName(), equalTo(itemDtoGet1.getName()));
+        ItemDto itemDtoGet2 = itemService.getItemById(itemDtoCreate2.getId(), userDtoCreate2.getId());
+        TypedQuery<Item> query2 = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        Item item2 = query2.setParameter("id", itemDtoCreate2.getId()).getSingleResult();
+        assertThat(item2.getId(), equalTo(itemDtoGet2.getId()));
+        assertThat(item2.getDescription(), equalTo(itemDtoGet2.getDescription()));
+        assertThat(item2.getName(), equalTo(itemDtoGet2.getName()));
+    }
+
+    @Test
+    void getItemByIdWithCurrentBooking() throws Exception {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate1.getId(), itemDto1);
+        ItemDto itemDtoCreate2 = itemService.createItem(userDtoCreate2.getId(), itemDto2);
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setItemId(itemDtoCreate2.getId());
+        bookingDto.setStart(LocalDateTime.now().plusSeconds(1));
+        bookingDto.setEnd(LocalDateTime.now().plusSeconds(2));
+        BookingDto bookingDtoCreate = bookingService.createBooking(userDtoCreate1.getId(), bookingDto);
+        BookingDto bookingDto2 = new BookingDto();
+        bookingDto2.setItemId(itemDtoCreate2.getId());
+        bookingDto2.setStart(LocalDateTime.now().plusSeconds(3));
+        bookingDto2.setEnd(LocalDateTime.now().plusSeconds(200));
+        BookingDto bookingDtoCreate2 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto2);
+        bookingService.approvedBooking(userDtoCreate2.getId(), bookingDtoCreate.getId(), true);
+        TimeUnit.SECONDS.sleep(4);
+        CommentDto commentDto = itemService.createComment(userDtoCreate1.getId(), commentDto1, itemDtoCreate2.getId());
+        ItemDto itemDtoGet1 = itemService.getItemById(itemDtoCreate2.getId(), userDtoCreate1.getId());
+        TypedQuery<Item> query = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        Item item = query.setParameter("id", itemDtoCreate2.getId()).getSingleResult();
+        assertThat(item.getId(), equalTo(itemDtoGet1.getId()));
+        assertThat(item.getDescription(), equalTo(itemDtoGet1.getDescription()));
+        assertThat(item.getName(), equalTo(itemDtoGet1.getName()));
+        ItemDto itemDtoGet2 = itemService.getItemById(itemDtoCreate2.getId(), userDtoCreate2.getId());
+        TypedQuery<Item> query2 = em.createQuery("SELECT i FROM Item i WHERE i.id = :id", Item.class);
+        Item item2 = query2.setParameter("id", itemDtoCreate2.getId()).getSingleResult();
+        assertThat(item2.getId(), equalTo(itemDtoGet2.getId()));
+        assertThat(item2.getDescription(), equalTo(itemDtoGet2.getDescription()));
+        assertThat(item2.getName(), equalTo(itemDtoGet2.getName()));
+    }
+
+    @Test
     void getItemByIdWithEmptyBooking() throws Exception {
         UserDto userDtoCreate1 = userService.createUser(userDto1);
         UserDto userDtoCreate2 = userService.createUser(userDto2);
@@ -305,6 +371,58 @@ public class ItemServiceImplTest {
         bookingDto.setEnd(LocalDateTime.now().plusSeconds(2));
         BookingDto bookingDtoCreate = bookingService.createBooking(userDtoCreate1.getId(), bookingDto);
         bookingService.approvedBooking(userDtoCreate2.getId(), bookingDtoCreate.getId(), true);
+        TimeUnit.SECONDS.sleep(4);
+        CommentDto commentDto = itemService.createComment(userDtoCreate1.getId(), commentDto1, itemDtoCreate2.getId());
+        List<ItemDto> itemDtos = itemService.getItemByOwner(userDtoCreate2.getId(), 0, 1);
+        TypedQuery<Item> query1 = em.createQuery("SELECT i FROM Item i WHERE i.owner.id = :id", Item.class);
+        List<Item> items = query1.setParameter("id", userDtoCreate2.getId()).getResultList();
+        assertThat(itemDtos.size(), equalTo(items.size()));
+        assertThat(itemDtos.get(0).getId(), equalTo(items.get(0).getId()));
+    }
+
+    @Test
+    void getItemByOwnerWithOtherBooking() throws Exception {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate1.getId(), itemDto1);
+        ItemDto itemDtoCreate2 = itemService.createItem(userDtoCreate2.getId(), itemDto2);
+        BookingDto bookingDto1 = new BookingDto();
+        bookingDto1.setItemId(itemDtoCreate2.getId());
+        bookingDto1.setStart(LocalDateTime.now().plusSeconds(1));
+        bookingDto1.setEnd(LocalDateTime.now().plusSeconds(2));
+        BookingDto bookingDtoCreate1 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto1);
+        BookingDto bookingDto2 = new BookingDto();
+        bookingDto2.setItemId(itemDtoCreate2.getId());
+        bookingDto2.setStart(LocalDateTime.now().plusSeconds(100));
+        bookingDto2.setEnd(LocalDateTime.now().plusSeconds(200));
+        BookingDto bookingDtoCreate2 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto2);
+        bookingService.approvedBooking(userDtoCreate2.getId(), bookingDtoCreate1.getId(), true);
+        TimeUnit.SECONDS.sleep(4);
+        CommentDto commentDto = itemService.createComment(userDtoCreate1.getId(), commentDto1, itemDtoCreate2.getId());
+        List<ItemDto> itemDtos = itemService.getItemByOwner(userDtoCreate2.getId(), 0, 1);
+        TypedQuery<Item> query1 = em.createQuery("SELECT i FROM Item i WHERE i.owner.id = :id", Item.class);
+        List<Item> items = query1.setParameter("id", userDtoCreate2.getId()).getResultList();
+        assertThat(itemDtos.size(), equalTo(items.size()));
+        assertThat(itemDtos.get(0).getId(), equalTo(items.get(0).getId()));
+    }
+
+    @Test
+    void getItemByOwnerWithCurrentBooking() throws Exception {
+        UserDto userDtoCreate1 = userService.createUser(userDto1);
+        UserDto userDtoCreate2 = userService.createUser(userDto2);
+        ItemDto itemDtoCreate1 = itemService.createItem(userDtoCreate1.getId(), itemDto1);
+        ItemDto itemDtoCreate2 = itemService.createItem(userDtoCreate2.getId(), itemDto2);
+        BookingDto bookingDto1 = new BookingDto();
+        bookingDto1.setItemId(itemDtoCreate2.getId());
+        bookingDto1.setStart(LocalDateTime.now().plusSeconds(1));
+        bookingDto1.setEnd(LocalDateTime.now().plusSeconds(2));
+        BookingDto bookingDto2 = new BookingDto();
+        bookingDto2.setItemId(itemDtoCreate2.getId());
+        bookingDto2.setStart(LocalDateTime.now().plusSeconds(3));
+        bookingDto2.setEnd(LocalDateTime.now().plusSeconds(200));
+        BookingDto bookingDtoCreate2 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto2);
+        BookingDto bookingDtoCreate1 = bookingService.createBooking(userDtoCreate1.getId(), bookingDto1);
+        bookingService.approvedBooking(userDtoCreate2.getId(), bookingDtoCreate1.getId(), true);
         TimeUnit.SECONDS.sleep(4);
         CommentDto commentDto = itemService.createComment(userDtoCreate1.getId(), commentDto1, itemDtoCreate2.getId());
         List<ItemDto> itemDtos = itemService.getItemByOwner(userDtoCreate2.getId(), 0, 1);

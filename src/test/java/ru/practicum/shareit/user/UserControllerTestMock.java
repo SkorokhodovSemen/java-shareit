@@ -9,8 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.UserController;
-import ru.practicum.shareit.user.UserServiceImpl;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.ArrayList;
@@ -59,7 +57,7 @@ public class UserControllerTestMock {
     @Test
     void createUserWithEmptyEmail() throws Exception {
         Mockito.when(userService.createUser(Mockito.any()))
-                        .thenThrow(new ConflictException("Поле email не заполнено"));
+                .thenThrow(new ConflictException("Поле email не заполнено"));
         ConflictException throwable = assertThrows(ConflictException.class,
                 () -> userController.createUser(userDto2));
         assertThat(throwable.getMessage(), equalTo("Поле email не заполнено"));
@@ -68,7 +66,7 @@ public class UserControllerTestMock {
     @Test
     void createUserWithExistEmail() throws Exception {
         Mockito.when(userService.createUser(Mockito.any()))
-                        .thenThrow(new ConflictException("Такой email уже существует"));
+                .thenThrow(new ConflictException("Такой email уже существует"));
         ConflictException throwable = assertThrows(ConflictException.class,
                 () -> userController.createUser(userDto3));
         assertThat(throwable.getMessage(), equalTo("Такой email уже существует"));

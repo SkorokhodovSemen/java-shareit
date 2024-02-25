@@ -188,7 +188,11 @@
                     <configuration>
                         <output>file</output>
                         <excludes>
-                            <exclude>**/generated-sources/*</exclude>
+                            <exclude>**/*QBooking.class</exclude>
+                            <exclude>**/*QComment.class</exclude>
+                            <exclude>**/*QItem.class</exclude>
+                            <exclude>**/*QItemRequest.class</exclude>
+                            <exclude>**/*QUser.class</exclude>
                         </excludes>
                     </configuration>
                     <executions>

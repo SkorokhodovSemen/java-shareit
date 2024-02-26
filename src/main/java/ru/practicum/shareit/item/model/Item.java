@@ -22,6 +22,5 @@ public class Item {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner")
     private User owner;
-    private long request;
-
+    private long requestId;
 }

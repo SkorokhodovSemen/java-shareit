@@ -16,6 +16,7 @@ public abstract class ItemMapper {
         itemDto.setAvailable(item.isAvailable());
         itemDto.setNextBooking(null);
         itemDto.setLastBooking(null);
+        itemDto.setRequestId(item.getRequestId());
         return itemDto;
     }
 
@@ -28,6 +29,7 @@ public abstract class ItemMapper {
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.isAvailable());
         item.setOwner(user);
+        item.setRequestId(itemDto.getRequestId());
         return item;
     }
 
@@ -40,6 +42,7 @@ public abstract class ItemMapper {
         itemCommentDto.setLastBooking(itemOwnerDto.getLastBooking());
         itemCommentDto.setNextBooking(itemOwnerDto.getNextBooking());
         itemCommentDto.setName(itemOwnerDto.getName());
+        itemCommentDto.setRequestId(itemOwnerDto.getRequestId());
         return itemCommentDto;
     }
 
@@ -52,6 +55,7 @@ public abstract class ItemMapper {
         itemCommentDto.setLastBooking(itemDto.getLastBooking());
         itemCommentDto.setNextBooking(itemDto.getNextBooking());
         itemCommentDto.setName(itemDto.getName());
+        itemCommentDto.setRequestId(itemDto.getRequestId());
         return itemCommentDto;
     }
 
@@ -61,6 +65,7 @@ public abstract class ItemMapper {
         itemOwnerDto.setName(item.getName());
         itemOwnerDto.setDescription(item.getDescription());
         itemOwnerDto.setAvailable(item.isAvailable());
+        itemOwnerDto.setRequestId(item.getRequestId());
         Optional<Booking> bookingLast = bookings.stream()
                 .filter(booking1 -> booking1.getEnd().isBefore(LocalDateTime.now()))
                 .max((booking2, booking3) -> booking2.getEnd().compareTo(booking3.getEnd()));

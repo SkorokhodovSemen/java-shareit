@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
@@ -20,7 +21,6 @@ import ru.practicum.shareit.user.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +54,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemByOwner(long userId) {
+    public List<ItemDto> getItemByOwner(long userId, int from, int size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
-        List<Item> items = itemRepository.findByOwner(userId);
+        validForSizeAndFrom(size, from);
+        List<Item> items = itemRepository.findByOwner(userId, PageRequest.of(from, size)).getContent();
         List<ItemDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
             List<Booking> bookings = bookingRepository.findBookingByItemAndOwner(item.getId(), item.getOwner().getId());
@@ -71,16 +72,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemForBooker(String text, long userId) {
+    public List<ItemDto> getItemForBooker(String text, long userId, int from, int size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
+        validForSizeAndFrom(size, from);
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.getItemForBooker(text.toLowerCase().trim())
-                .stream()
+        return itemRepository.getItemForBooker(text.toLowerCase().trim(), PageRequest.of(from, size))
                 .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+                .getContent();
     }
 
     @Override
@@ -155,6 +156,12 @@ public class ItemServiceImpl implements ItemService {
     private void validateForOwner(long userId, long ownerId, long itemId) {
         if (ownerId != userId) {
             throw new NotFoundException("У пользователя с id = " + userId + " нет вещи с id = " + itemId);
+        }
+    }
+
+    private void validForSizeAndFrom(int size, int from) {
+        if (size <= 0 || from < 0) {
+            throw new ValidationException("Проверьте правильность введенных параметров");
         }
     }
 }

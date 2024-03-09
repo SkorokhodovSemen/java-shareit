@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImplTest {
 
+    @Autowired
     private final UserService userService;
     UserDto userDto1 = new UserDto();
     UserDto userDto2 = new UserDto();

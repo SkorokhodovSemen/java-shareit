@@ -16,7 +16,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +41,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingForUser(long idUser, String state, int from, int size) {
-        validForSizeAndFrom(size, from);
         userRepository.findById(idUser)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
         Pageable pageable = PageRequest.of(from / size, size);
@@ -83,7 +81,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingForOwner(long idUser, String state, int from, int size) {
-        validForSizeAndFrom(size, from);
         userRepository.findById(idUser)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + idUser + " не найден"));
         List<Item> items = itemRepository.findByOwnerWithoutPage(idUser);
@@ -133,7 +130,6 @@ public class BookingServiceImpl implements BookingService {
         Optional<Item> itemOptional = itemRepository.findById(bookingDto.getItemId());
         validFoundForUser(userOptional, idUser);
         validFoundForItem(bookingDto.getItemId(), itemOptional);
-        checkCorrectTime(bookingDto.getStart(), bookingDto.getEnd());
         validForAvailable(itemOptional);
         validForTime(itemOptional, bookingDto);
         validForItemHaveOwner(itemOptional, idUser);
@@ -207,12 +203,6 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkCorrectTime(LocalDateTime start, LocalDateTime end) {
-        if (!(start.isBefore(end) && start.isAfter(LocalDateTime.now()) && end.isAfter(LocalDateTime.now()))) {
-            throw new ValidationException("Неверные параметры для времени, проверьте правильность запроса");
-        }
-    }
-
     private void validForStatus(Booking booking) {
         if (!booking.getStatus().equals(Status.WAITING)) {
             log.info("Статус у данного бронирования уже изменен");
@@ -231,12 +221,6 @@ public class BookingServiceImpl implements BookingService {
         if (itemOptional.get().getOwner().getId() == idUser) {
             log.info("Пользователь с id = {} не может создать бронирование на свою вещь", idUser);
             throw new NotFoundException("Вы не можете создать бронирование на свою вещь");
-        }
-    }
-
-    private void validForSizeAndFrom(int size, int from) {
-        if (size <= 0 || from < 0) {
-            throw new ValidationException("Проверьте правильность введенных параметров");
         }
     }
 }

@@ -1,4 +1,6 @@
 # Share It
+## About  
+In this app, users can give and rent any item, from a screwdriver to a car. And also respond and help other users in their search who have not found the item that interests them.  
 ## Applications  
 ### ShareIt Gateway  
 Contains endpoint and valid input data  

@@ -9,3 +9,10 @@ Contains main application
 ## How to run the application using Docker  
 Run *mvn clean package* to build the applications and create the docker image locally.  
 Run *docker-compose up* to start the applications.  
+##  Technology stack  
+* SpringBoot
+* Docker
+* Hibernate
+* PostgreSQL
+* REST
+* Apache Maven  
